@@ -11,9 +11,47 @@
         int communicationChannelId,
         string identifier)
     {
+        if (id < 0)
+        {
+            throw new System.ArgumentOutOfRangeException(nameof(id));
+        }
+
+        if (communicationChannelId <= 0)
+        {
+            throw new System.ArgumentOutOfRangeException(
+                nameof(communicationChannelId));
+        }
+
+        if (string.IsNullOrWhiteSpace(identifier))
+        {
+            throw new System.ArgumentException(
+                "Идентификатор обязателен.",
+                nameof(identifier));
+        }
+
         Id = id;
         CommunicationChannelId = communicationChannelId;
-        Identifier = identifier;
+        Identifier = identifier.Trim();
+    }
+
+    public bool IsPersisted => Id > 0;
+
+    public override bool Equals(object? obj)
+    {
+        if (object.ReferenceEquals(this, obj))
+        {
+            return true;
+        }
+
+        return obj is Contact other
+            && IsPersisted
+            && other.IsPersisted
+            && Id == other.Id;
+    }
+
+    public override int GetHashCode()
+    {
+        return IsPersisted ? Id.GetHashCode() : base.GetHashCode();
     }
 
     public void Deconstruct(
