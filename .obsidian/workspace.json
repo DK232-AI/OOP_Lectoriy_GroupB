@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Reports/Results_Homework_1_README.md",
+                "file": "Homework_1/Results_Homework_1_README.md",
                 "mode": "source",
                 "source": false
               },
@@ -99,7 +99,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Reports/Results_Homework_1_README.md",
+                "file": "Homework_1/Results_Homework_1_README.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -118,7 +118,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Reports/Results_Homework_1_README.md",
+                "file": "Homework_1/Results_Homework_1_README.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
@@ -161,7 +161,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Reports/Results_Homework_1_README.md",
+                "file": "Homework_1/Results_Homework_1_README.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
@@ -189,5 +189,19 @@
     }
   },
   "active": "5b43f09029097178",
-  "lastOpenFiles": []
+  "lastOpenFiles": [
+    "Reports/Results_Homework_1_README.md",
+    "Homework_1/Results_Homework_1_README.md",
+    "Homework_1/obj/Debug/net8.0/Homework_1.csproj.FileListAbsolute.txt",
+    "Homework_1/bin/Debug/net8.0/Homework_1.pdb",
+    "Homework_1/obj/Debug/net8.0/ref/Homework_1.dll",
+    "Homework_1/bin/Debug/net8.0/Homework_1.dll",
+    "Homework_1/bin/Debug/net8.0/Homework_1.runtimeconfig.json",
+    "Homework_1/obj/Debug/net8.0/Homework_1.genruntimeconfig.cache",
+    "Homework_1/bin/Debug/net8.0/Homework_1.deps.json",
+    "Homework_1/bin/Debug/net8.0/Homework_1.exe",
+    "Homework_1/obj/Debug/net8.0/apphost.exe",
+    "Homework_1/obj/Debug/net8.0/refint/Homework_1.dll",
+    "Homework_1/Viva/README.md"
+  ]
 }

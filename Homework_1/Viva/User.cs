@@ -3,8 +3,6 @@ public class User
     public int Id { get; }
     public string FullName { get; private set; }
     public string Login { get; private set; }
-
-    // Принимает готовый хэш; вычисление хэша выполняется вне модели.
     public string PasswordHash { get; }
 
     public User(int id, string fullName, string login, string passwordHash)
@@ -70,7 +68,6 @@ public class User
         return Id > 0 ? Id.GetHashCode() : base.GetHashCode();
     }
 
-    // Хэш пароля не включается в краткие данные пользователя.
     public void Deconstruct(out int id, out string fullName, out string login)
     {
         id = Id;

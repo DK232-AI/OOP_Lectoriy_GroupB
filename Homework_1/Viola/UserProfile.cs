@@ -14,7 +14,6 @@ public class UserProfile
         _contacts = new List<Contact>();
     }
 
-    // метод добавления контакта
     public void AddContact(Contact contact)
     {
         if (contact == null)
@@ -26,9 +25,11 @@ public class UserProfile
         _contacts.Add(contact);
     }
 
-    // метод удаления контакта
     public bool RemoveContact(int contactId)
     {
+        if (contactId <= 0)
+            return false;
+
         var contactToRemove = _contacts.Find(c => c.Id == contactId);
         if (contactToRemove != null)
             return _contacts.Remove(contactToRemove);
