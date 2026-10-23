@@ -50,7 +50,7 @@ public class UserProfile
         {
             foreach (var contact in Contacts)
             {
-                var (contactId, channelId, identifier) = contact;
+                var (_, channelId, identifier) = contact;
                 sb.AppendLine($"Контакт канала {channelId}: {identifier}");
             }
         }
