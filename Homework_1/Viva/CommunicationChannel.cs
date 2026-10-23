@@ -19,6 +19,16 @@ public class CommunicationChannel
         Name = name.Trim();
     }
 
+    public override bool Equals(object? obj)
+    {
+        return obj is CommunicationChannel other && Id == other.Id;
+    }
+
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode();
+    }
+
     public void Deconstruct(out int id, out string name)
     {
         id = Id;
