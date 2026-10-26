@@ -11,14 +11,10 @@
             "id": "5b43f09029097178",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Homework_1/Results_Homework_1_README.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "Results_Homework_1_README"
+              "title": "Новая вкладка"
             }
           }
         ]
@@ -99,7 +95,6 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Homework_1/Results_Homework_1_README.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -118,7 +113,6 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Homework_1/Results_Homework_1_README.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
@@ -188,20 +182,24 @@
       "bases:Создать новую базу": false
     }
   },
-  "active": "5b43f09029097178",
+  "active": "f4223baab308f3d3",
   "lastOpenFiles": [
-    "Reports/Results_Homework_1_README.md",
+    "Homework_1/ООП Домашнее Задание 1 - Классы.pdf",
+    "Homework_1/ООП Домашнее Задание 1 - Классы.md",
+    "Homework_1/Viva/User.cs",
+    "Homework_1/Viva/CommunicationChannel.cs",
+    "Homework_1/Viva",
+    "Homework_1/Viola/UserProfile.cs",
+    "Homework_1/Viola",
     "Homework_1/Results_Homework_1_README.md",
-    "Homework_1/obj/Debug/net8.0/Homework_1.csproj.FileListAbsolute.txt",
-    "Homework_1/bin/Debug/net8.0/Homework_1.pdb",
-    "Homework_1/obj/Debug/net8.0/ref/Homework_1.dll",
-    "Homework_1/bin/Debug/net8.0/Homework_1.dll",
-    "Homework_1/bin/Debug/net8.0/Homework_1.runtimeconfig.json",
-    "Homework_1/obj/Debug/net8.0/Homework_1.genruntimeconfig.cache",
-    "Homework_1/bin/Debug/net8.0/Homework_1.deps.json",
-    "Homework_1/bin/Debug/net8.0/Homework_1.exe",
-    "Homework_1/obj/Debug/net8.0/apphost.exe",
-    "Homework_1/obj/Debug/net8.0/refint/Homework_1.dll",
+    "Homework_1/Matvey/Contact.cs",
+    "Homework_1/Matvey",
+    "Homework_1/Lead/UserService.cs",
+    "Homework_1/Lead/Program.cs",
+    "Homework_1/Lead",
+    "Reports/Readme_1.md",
+    "README.md",
+    "Reports/Results_Homework_1_README.md",
     "Homework_1/Viva/README.md"
   ]
 }

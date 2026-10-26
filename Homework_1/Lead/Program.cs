@@ -1,6 +1,5 @@
 using System;
 
-// Задача лидера: простая компоновка, затем работа через сервис.
 public static class Program
 {
     public static void Main()
