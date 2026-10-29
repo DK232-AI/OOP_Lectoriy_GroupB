@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Marketplace;
+namespace Marketplace.Domain;
 
 public class UserBasket
 {
@@ -10,6 +10,8 @@ public class UserBasket
 
     public int Id { get; }
     public int UserId { get; }
+    public int Count => positions.Count;
+    public bool IsEmpty => positions.Count == 0;
 
     public UserBasket(int userId)
     {
@@ -40,6 +42,19 @@ public class UserBasket
     // Копируются и список, и позиции: историю покупок можно хранить независимо от корзины.
     public List<ProductPosition> GetPositions() => positions.ConvertAll(position => position.Copy());
 
+    public bool SetQuantity(int positionId, int quantity)
+    {
+        if (quantity <= 0)
+            throw new ArgumentOutOfRangeException(nameof(quantity), "Количество должно быть больше нуля.");
+
+        ProductPosition? position = positions.Find(item => item.Id == positionId);
+        if (position == null)
+            return false;
+
+        position.Quantity = quantity;
+        return true;
+    }
+
     public bool RemovePosition(int positionId) => positions.RemoveAll(position => position.Id == positionId) > 0;
 
     // Вызывать после успешной оплаты. При отказе сервис не должен очищать корзину.
@@ -53,10 +68,10 @@ public class UserBasket
         }
 
         // Проверяем скидку даже для пустой корзины.
-        var emptyPrice = new CalculatedPrice(0m, discountMultiplier);
+        CalculatedPrice.ValidateDiscountMultiplier(discountMultiplier);
         if (positions.Count == 0)
         {
-            return emptyPrice;
+            return new CalculatedPrice(0m, discountMultiplier);
         }
 
         var catalog = new Dictionary<int, Product>();

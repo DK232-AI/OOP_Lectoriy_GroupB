@@ -1,6 +1,6 @@
 using System;
 
-namespace Marketplace;
+namespace Marketplace.Domain;
 
 public class ProductPosition
 {
@@ -17,7 +17,7 @@ public class ProductPosition
         {
             if (value <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(value), "Количество должно быть больше нуля.");
+                throw new ArgumentOutOfRangeException(nameof(Quantity), "Количество должно быть больше нуля.");
             }
 
             quantity = value;
