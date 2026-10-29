@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Tests\**\*.cs" />
+    <Compile Include="..\Homework_1\Viva\User.cs" Link="Domain\User.cs" />
+    <Compile Include="..\Homework_1\Viva\CommunicationChannel.cs" Link="Domain\CommunicationChannel.cs" />
+    <Compile Include="..\Homework_1\Matvey\Contact.cs" Link="Domain\Contact.cs" />
+  </ItemGroup>
+</Project>

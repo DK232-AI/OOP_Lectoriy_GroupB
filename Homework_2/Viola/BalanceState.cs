@@ -1,32 +1,54 @@
 using System;
 
-namespace Marketplace.Domain;  // рекомендованное пространство имён
+namespace Marketplace.Domain;
 
-// стуктура состояния баланса покупателя
 public readonly struct BalanceState
 {
-    public double Bonuses { get; }
-    public double Money { get; }
-    public double BonusPaymentRatio { get; }    // доля итоговой цены, которую можно оплатить бонусами, от 0.0 до 0.5
+    private readonly decimal bonuses;
+    private readonly decimal money;
+    private readonly decimal bonusPaymentRatio;
 
-    public BalanceState(double bonuses, double money, double bonusPaymentRatio)
+    public decimal Bonuses
     {
-        if (bonuses < 0.0)
-            throw new ArgumentException("Количество бонусов не может быть меньше нуля", nameof(bonuses));
+        get => bonuses;
+        init
+        {
+            if (value < 0m)
+                throw new ArgumentOutOfRangeException(nameof(value), "Бонусы не могут быть отрицательными.");
+            bonuses = value;
+        }
+    }
 
-        if (money < 0.0)
-            throw new ArgumentException("Количество денежных единиц не может быть меньше нуля", nameof(money));
+    public decimal Money
+    {
+        get => money;
+        init
+        {
+            if (value < 0m)
+                throw new ArgumentOutOfRangeException(nameof(value), "Баланс не может быть отрицательным.");
+            money = value;
+        }
+    }
 
-        if (bonusPaymentRatio < 0.0 || bonusPaymentRatio > 0.5)
-            throw new ArgumentException("Доля оплаты бонусами должна быть от 0.0 до 0.5", nameof(bonusPaymentRatio));
+    public decimal BonusPaymentRatio
+    {
+        get => bonusPaymentRatio;
+        init
+        {
+            if (value < 0m || value > 0.5m)
+                throw new ArgumentOutOfRangeException(nameof(value), "Доля оплаты бонусами должна быть от 0 до 0.5.");
+            bonusPaymentRatio = value;
+        }
+    }
 
+    // init-проверки действуют и в конструкторе, и при копировании через with.
+    public BalanceState(decimal bonuses, decimal money, decimal bonusPaymentRatio)
+    {
         Bonuses = bonuses;
         Money = money;
         BonusPaymentRatio = bonusPaymentRatio;
     }
 
-    public override string ToString()
-    {
-        return $"Баланс: {Money:F2} УЕ, {Bonuses:F2} бонусов. Возможная доля оплаты бонусами: {BonusPaymentRatio:P0}";
-    }
+    public override string ToString() =>
+        $"Баланс: {Money:F2} УЕ, {Bonuses:F2} бонусов. Доля оплаты бонусами: {BonusPaymentRatio:P0}";
 }
