@@ -2,6 +2,9 @@ using System;
 
 namespace Marketplace.Domain;
 
+/// <summary>
+/// Товар каталога: ID, название, цена за единицу.
+/// </summary>
 public class Product
 {
     private static int counter;
@@ -41,4 +44,6 @@ public class Product
         Price = price;
         Id = checked(++counter);
     }
+
+    public override string ToString() => $"Товар #{Id} \"{Name}\", {Price:F2} УЕ";
 }

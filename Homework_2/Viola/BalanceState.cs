@@ -2,47 +2,55 @@ using System;
 
 namespace Marketplace.Domain;
 
-public readonly struct BalanceState
+/// <summary>
+/// Состояние баланса покупателя: бонусы, деньги и разрешённая доля оплаты бонусами.
+/// Неизменяемая структура (readonly record struct), поэтому поддерживает выражение with и при этом не позволяет изменить состояние на месте.
+/// </summary>
+public readonly record struct BalanceState
 {
-    private readonly decimal bonuses;
-    private readonly decimal money;
-    private readonly decimal bonusPaymentRatio;
+    private readonly double bonuses;
+    private readonly double money;
+    private readonly double bonusPaymentRatio;
 
-    public decimal Bonuses
+    public double Bonuses
     {
         get => bonuses;
         init
         {
-            if (value < 0m)
-                throw new ArgumentOutOfRangeException(nameof(value), "Бонусы не могут быть отрицательными.");
+            if (!double.IsFinite(value) || value < 0.0)
+                throw new ArgumentOutOfRangeException(nameof(Bonuses), "Количество бонусов не может быть отрицательным.");
+
             bonuses = value;
         }
     }
 
-    public decimal Money
+    public double Money
     {
         get => money;
         init
         {
-            if (value < 0m)
-                throw new ArgumentOutOfRangeException(nameof(value), "Баланс не может быть отрицательным.");
+            if (!double.IsFinite(value) || value < 0.0)
+                throw new ArgumentOutOfRangeException(nameof(Money), "Количество денежных единиц не может быть отрицательным.");
+
             money = value;
         }
     }
 
-    public decimal BonusPaymentRatio
+    /// <summary>Доля итоговой цены, которую можно оплатить бонусами: от 0.0 до 0.5.</summary>
+    public double BonusPaymentRatio
     {
         get => bonusPaymentRatio;
         init
         {
-            if (value < 0m || value > 0.5m)
-                throw new ArgumentOutOfRangeException(nameof(value), "Доля оплаты бонусами должна быть от 0 до 0.5.");
+            if (!double.IsFinite(value) || value < 0.0 || value > 0.5)
+                throw new ArgumentOutOfRangeException(nameof(BonusPaymentRatio),
+                    "Доля оплаты бонусами должна быть от 0.0 до 0.5.");
+
             bonusPaymentRatio = value;
         }
     }
 
-    // init-проверки действуют и в конструкторе, и при копировании через with.
-    public BalanceState(decimal bonuses, decimal money, decimal bonusPaymentRatio)
+    public BalanceState(double bonuses, double money, double bonusPaymentRatio)
     {
         Bonuses = bonuses;
         Money = money;
@@ -50,5 +58,5 @@ public readonly struct BalanceState
     }
 
     public override string ToString() =>
-        $"Баланс: {Money:F2} УЕ, {Bonuses:F2} бонусов. Доля оплаты бонусами: {BonusPaymentRatio:P0}";
+        $"Баланс: {Money:F2} УЕ, {Bonuses:F2} бонусов. Возможная доля оплаты бонусами: {BonusPaymentRatio:P0}";
 }
