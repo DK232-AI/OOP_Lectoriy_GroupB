@@ -45,5 +45,23 @@ public class Product
         Id = checked(++counter);
     }
 
+    // новый перегруженный конструктор для загрузки товара из файла с сохранением
+    // старого ID; автоматически сдвигает статический счетчик counter, чтобы новые  
+    // товары не получили ID, который уже занят загруженными
+    public Product(int id, string name, decimal price)
+    {
+        if (id <= 0)
+            throw new ArgumentException("ID должен быть больше нуля.", nameof(id));
+
+        Id = id;
+        Name = name;
+        Price = price;
+
+        if (id >= counter)
+        {
+            counter = id + 1;
+        }
+    }
+
     public override string ToString() => $"Товар #{Id} \"{Name}\", {Price:F2} УЕ";
 }
