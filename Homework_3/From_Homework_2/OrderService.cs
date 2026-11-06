@@ -11,7 +11,8 @@ using Marketplace.Domain;
 public class OrderService
 {
     /// <summary>
-    /// Оплата покупки: часть итоговой цены закрывается бонусами в пределах разрешённой доли, остаток - деньгами с личного баланса.
+    /// Оплата покупки: часть итоговой цены закрывается бонусами в пределах
+    /// разрешённой доли, остаток — деньгами с личного баланса.
     /// При нехватке средств состояние баланса не меняется.
     /// </summary>
     public PaymentResult Pay(BalanceState state, CalculatedPrice price)
@@ -21,7 +22,7 @@ public class OrderService
         // Списание в один вызов: сначала решаем, сколько закрывают бонусы и сколько деньги.
         (decimal bonuses, decimal money) = SplitPayment(price, state);
 
-        // Итоговая цена не может быть закрыта деньгами полностью - отказ без списаний.
+        // Итоговая цена не может быть закрыта деньгами полностью — отказ без списаний.
         if (money > ToDecimal(state.Money))
             return Reject("Недостаточно средств на балансе: не хватает "
                           + (money - ToDecimal(state.Money)).ToString("F2") + " УЕ.", price, state);
@@ -50,7 +51,8 @@ public class OrderService
     }
 
     /// <summary>
-    /// Полный сценарий покупки: расчёт цены по персональной скидке, оплата, при успехе - обновление баланса, добавление покупок в историю и очистка корзины.
+    /// Полный сценарий покупки: расчёт цены по персональной скидке, оплата,
+    /// при успехе — обновление баланса, добавление покупок в историю и очистка корзины.
     /// При отказе корзина и баланс остаются без изменений.
     /// </summary>
     public PaymentResult Checkout(UserProfile profile, UserBasket basket, IReadOnlyCollection<Product> catalog)
@@ -65,7 +67,7 @@ public class OrderService
             return new PaymentResult
             {
                 Success = false,
-                Message = "Корзина пуста - оплачивать нечего.",
+                Message = "Корзина пуста — оплачивать нечего.",
                 NewBalance = BuildBalanceState(profile),
                 Price = new CalculatedPrice(0m, ToMultiplier(profile))
             };

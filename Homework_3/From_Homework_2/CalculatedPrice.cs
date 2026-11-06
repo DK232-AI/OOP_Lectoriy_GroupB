@@ -3,7 +3,8 @@ using System;
 namespace Marketplace.Domain;
 
 /// <summary>
-/// Расчётная цена корзины: исходная цена, множитель скидки (0.01–1.00) и размер скидки в деньгах. Неизменяемая структура.
+/// Расчётная цена корзины: исходная цена, множитель скидки (0.01–1.00) и размер скидки в деньгах.
+/// Неизменяемая структура.
 /// </summary>
 public readonly struct CalculatedPrice
 {
@@ -26,7 +27,8 @@ public readonly struct CalculatedPrice
     }
 
     /// <summary>
-    /// Проверка множителя скидки. Вынесена, чтобы корзина могла проверить скидку даже при пустом списке позиций.
+    /// Проверка множителя скидки. Вынесена, чтобы корзина могла проверить скидку
+    /// даже при пустом списке позиций.
     /// </summary>
     internal static void ValidateDiscountMultiplier(decimal discountMultiplier)
     {

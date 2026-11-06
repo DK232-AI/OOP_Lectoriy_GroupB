@@ -37,7 +37,8 @@ public class UserBasket
     }
 
     /// <summary>
-    /// Возвращает позиции корзины. Копируются и список, и позиции: историю покупок можно хранить независимо от корзины.
+    /// Возвращает позиции корзины. Копируются и список, и позиции:
+    /// историю покупок можно хранить независимо от корзины.
     /// </summary>
     public List<ProductPosition> GetPositions() => positions.ConvertAll(position => position.Copy());
 
@@ -85,7 +86,7 @@ public class UserBasket
             if (product == null)
                 throw new ArgumentException("Каталог не должен содержать null.", nameof(products));
 
-            if (!catalog.TryAdd(product.Id, product))
+            if (!catalog.TryAdd(product.GetId(), product))
                 throw new ArgumentException("В каталоге повторяется ID товара.", nameof(products));
         }
 
@@ -95,7 +96,7 @@ public class UserBasket
             if (!catalog.TryGetValue(position.ProductId, out Product? product))
                 throw new InvalidOperationException("В каталоге нет товара с ID " + position.ProductId + ".");
 
-            originalPrice += product.Price * position.Quantity;
+            originalPrice += product.GetPrice() * position.Quantity;
         }
 
         return new CalculatedPrice(originalPrice, discountMultiplier);

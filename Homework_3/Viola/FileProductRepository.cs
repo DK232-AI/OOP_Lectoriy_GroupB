@@ -3,80 +3,109 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using System.Linq;
 using Marketplace.Domain;
 
 namespace Marketplace.DataAccess;
 
+/// <summary>
+/// Файловое хранилище товаров. Внутренняя деталь реализации, наружу сборки не нужна.
+/// Формат строки: ID;Название;Цена — один товар на строку.
+/// </summary>
 internal class FileProductRepository : IProductRepository
 {
-    private readonly string _filePath;
+    private static readonly UTF8Encoding Utf8NoBom = new(encoderShouldEmitUTF8Identifier: false);
+
+    private readonly string filePath;
 
     public FileProductRepository(string filePath)
     {
-        _filePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
+        if (string.IsNullOrWhiteSpace(filePath))
+            throw new ArgumentException("Путь к файлу не может быть пустым.", nameof(filePath));
+
+        this.filePath = filePath;
     }
 
     public void Save(IEnumerable<Product> products)
     {
-        if (products == null) throw new ArgumentNullException(nameof(products));
+        ArgumentNullException.ThrowIfNull(products);
 
         var lines = new List<string>();
-        foreach (var p in products)
+        foreach (var product in products)
         {
-            lines.Add(Serialize(p));
+            if (product == null)
+                throw new ArgumentException("Список товаров не должен содержать null.", nameof(products));
+
+            lines.Add(Serialize(product));
         }
 
-        // сохраняем в файл в кодировке UTF-8, чтобы русские буквы сохранялись
-        File.WriteAllLines(_filePath, lines, Encoding.UTF8);
+        // UTF-8 без BOM: файл читается и нашим кодом, и сторонними инструментами.
+        File.WriteAllLines(filePath, lines, Utf8NoBom);
     }
 
-    // чтобы избежать коллизий с ID, при вызове Load() текущий Catalog должен
-    // быть полностью очищен и заполнен заново из файла коллекцией result
+    /// <summary>
+    /// Читает товары из файла. Отсутствующий файл — это пустой список.
+    /// Битые строки пропускаются: одна испорченная запись не роняет загрузку.
+    /// ВНИМАНИЕ: чтобы не было коллизий по ID, перед заполнением создайте новый Catalog.
+    /// </summary>
     public List<Product> Load()
     {
         var result = new List<Product>();
 
-        if (!File.Exists(_filePath)) return result;
+        if (!File.Exists(filePath))
+            return result;
 
-        var lines = File.ReadAllLines(_filePath, Encoding.UTF8);
-        foreach (var l in lines)
+        var lines = File.ReadAllLines(filePath, Utf8NoBom);
+        foreach (var line in lines)
         {
-            try
-            {
-                var product = Deserialize(l);
+            Product? product = Deserialize(line);
 
-                // кроме нуль проверки ещё защита от дубликатов
-                if (product != null && !result.Any(p => p.Id == product.Id))
-                {
-                    result.Add(product);
-                }
-            }
-            catch (Exception)
-            {
+            // null — битая строка; повтор ID — тоже пропускаем.
+            if (product == null || result.Exists(existing => existing.GetId() == product.GetId()))
                 continue;
-            }
+
+            result.Add(product);
         }
+
         return result;
     }
 
-
-
     private static string Serialize(Product product)
     {
-        // формат: ID;Название;Цена с точкой для дробей, чтобы не ломалось при разных языках ПК
-        return $"{product.Id};{product.Name};{product.Price.ToString(CultureInfo.InvariantCulture)}";
+        string title = product.GetTitle();
+
+        // Разделитель и перевод строки внутри названия сломали бы формат.
+        if (title.Contains(';') || title.Contains('\n') || title.Contains('\r'))
+            throw new ArgumentException("Название товара не должно содержать символ ';' или перевод строки.", nameof(product));
+
+        return string.Join(';',
+            product.GetId().ToString(CultureInfo.InvariantCulture),
+            title,
+            product.GetPrice().ToString(CultureInfo.InvariantCulture));
     }
 
-    private static Product Deserialize(string line)
+    private static Product? Deserialize(string line)
     {
+        if (string.IsNullOrWhiteSpace(line))
+            return null;
+
         var parts = line.Split(';');
-        if (parts.Length != 3) return null;
+        if (parts.Length != 3)
+            return null;
 
-        int id = int.Parse(parts[0]);
-        string name = parts[1];
-        decimal price = decimal.Parse(parts[2], CultureInfo.InvariantCulture);
+        if (!int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out int id))
+            return null;
 
-        return new Product(id, name, price);
+        if (!int.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out int price))
+            return null;
+
+        try
+        {
+            return new Product(id, parts[1], price);
+        }
+        catch (ArgumentException)
+        {
+            // Некорректные данные из файла — пропускаем строку, а не роняем загрузку.
+            return null;
+        }
     }
 }

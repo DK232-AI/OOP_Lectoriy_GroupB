@@ -5,24 +5,26 @@ using Marketplace.Domain;
 
 namespace Marketplace.Presentation;
 
+/// <summary>
+/// Отвечает только за расчёты по каталогу (SRP). Ничего не печатает и не работает с файлами.
+/// </summary>
 public class CatalogReport
 {
     public decimal GetAveragePrice(IEnumerable<Product> products)
     {
-        if (products == null) 
-            throw new ArgumentNullException(nameof(products));
+        ArgumentNullException.ThrowIfNull(products);
 
-        var list = products.ToList();
-        if (list.Count == 0) return 0m;
+        var prices = products.Select(product => (decimal)product.GetPrice()).ToList();
+        if (prices.Count == 0)
+            return 0m;
 
-        return list.Average(p => p.Price);
+        return prices.Average();
     }
 
     public decimal GetSummary(IEnumerable<Product> products)
     {
-        if (products == null) 
-            throw new ArgumentNullException(nameof(products));
+        ArgumentNullException.ThrowIfNull(products);
 
-        return products.Sum(p => p.Price);
+        return products.Sum(product => (decimal)product.GetPrice());
     }
 }

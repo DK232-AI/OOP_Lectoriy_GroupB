@@ -2,6 +2,11 @@ using System;
 
 namespace Marketplace.Domain;
 
+/// <summary>
+/// Контакт пользователя. Оставлен из Домашнего Задания 1.
+/// ВНИМАНИЕ: восстановлен по деконструктору (_, channelId, identifier) в UserProfile.Deconstruct.
+/// Заменить на исходный класс из ДЗ 1, если он отличался.
+/// </summary>
 public class Contact
 {
     private static int counter;

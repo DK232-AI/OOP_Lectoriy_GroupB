@@ -5,7 +5,7 @@ namespace Marketplace.Domain;
 
 /// <summary>
 /// Профиль пользователя: контакты, балансы, скидка и история покупок.
-/// Денежные поля имеют тип double - по требованию ТЗ («с плавающей точкой»).
+/// Денежные поля имеют тип double — по требованию ТЗ («с плавающей точкой»).
 /// </summary>
 public class UserProfile
 {
@@ -23,7 +23,7 @@ public class UserProfile
     /// <summary>Баланс в бонусах. Не может быть отрицательным.</summary>
     public double BonusBalance { get; private set; }
 
-    /// <summary>Персональная скидка: множитель от 0.01 до 1.00, где 1.00 - скидка 0%.</summary>
+    /// <summary>Персональная скидка: множитель от 0.01 до 1.00, где 1.00 — скидка 0%.</summary>
     public double PersonalDiscount { get; private set; }
 
     /// <summary>Разрешённая доля оплаты бонусами: от 0.0 до 0.5.</summary>
@@ -35,9 +35,11 @@ public class UserProfile
 
         MoneyBalance = 0.0;
         BonusBalance = 0.0;
-        PersonalDiscount = 1.00;   // 1.00 - это 0% скидки
+        PersonalDiscount = 1.00;   // 1.00 — это 0% скидки
         AllowedBonusRatio = 0.0;
     }
+
+    // ---------- Контакты (ДЗ 1) ----------
 
     public void AddContact(Contact contact)
     {
@@ -91,6 +93,8 @@ public class UserProfile
         purchaseCount = Purchases.Count;
     }
 
+    // ---------- Балансы ----------
+
     public void AddMoney(double amount)
     {
         // Проверка через отрицание нужна, чтобы отсечь NaN: NaN не меньше нуля и не больше нуля.
@@ -126,7 +130,7 @@ public class UserProfile
 
     /// <summary>
     /// Применяет новое состояние баланса после оплаты. Вызывается сервисом оплаты.
-    /// Рассчитывает на корректность BalanceState - проверки выполняются в его конструкторе.
+    /// Рассчитывает на корректность BalanceState — проверки выполняются в его конструкторе.
     /// </summary>
     public void ApplyNewBalance(BalanceState newState)
     {
@@ -135,8 +139,11 @@ public class UserProfile
         AllowedBonusRatio = newState.BonusPaymentRatio;
     }
 
+    // ---------- История покупок ----------
+
     /// <summary>
-    /// Добавляет купленные позиции в историю. Позиции копируются, чтобы история не зависела от корзины и не могла быть изменена извне.
+    /// Добавляет купленные позиции в историю. Позиции копируются, чтобы история
+    /// не зависела от корзины и не могла быть изменена извне.
     /// </summary>
     public void AddPurchases(IEnumerable<ProductPosition> items)
     {
