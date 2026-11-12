@@ -67,5 +67,7 @@ public class Discount
         decimal finalPrice = total - discountAmount;
 
         return (int)finalPrice;
+        // округление происходит путем отбрасывания дробной части, поскольку в задании не указано иное
+        // не очень понимаю, почему вообще для расчетов денег мы используем int вместе decimal
     }
 }
