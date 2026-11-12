@@ -58,13 +58,10 @@ public class CheckoutService
 
 
 
-    // IsAvailable проверяет доступность позиции 
-    // Сейчас конструктор CartItem уже гарантирует, что Quantity > 0, так что в сущности метод бесполезен
-    // Но IsAvailable указан в методичке как обязательный, я только не знаю, как его сделать осмысленным
-    // Возможно, у нас есть другие способы установить доступность товара для покупки? Например база склада или типа того?
+    // default(CartItem) создается без вызова конструктора и не является позицией покупки.
     private bool IsAvailable(CartItem item)
     {
-        return item.Quantity > 0;
+        return item.ProductId > 0 && item.Quantity > 0 && item.PricePerUnit >= 0;
     }
 
     private string PrepareLine(CartItem item)

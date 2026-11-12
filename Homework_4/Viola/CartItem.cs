@@ -8,7 +8,8 @@ public readonly struct CartItem
     public int Quantity { get; }
     public int PricePerUnit { get; }    //опять же, почему для денег int а не decimal?
 
-    public int Total => PricePerUnit * Quantity;
+    // public int Total => PricePerUnit * Quantity;
+    public int Total => checked(PricePerUnit * Quantity);
 
     public CartItem(int productId, int quantity, int pricePerUnit)
     {
