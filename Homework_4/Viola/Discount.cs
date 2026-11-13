@@ -2,42 +2,51 @@ using System;
 
 namespace Marketplace.Domain;
 
+/// <summary>
+/// Скидка на заказ. Расчёт вынесен в перегруженный Calculate,
+/// проверки — в приватные EnsurePercent и ApplyDiscount.
+/// </summary>
 public class Discount
 {
+    private decimal percent;
+    private int minSum;
+
+    // Сокращённая запись, обязательная при создании.
     public required string Name { get; init; }
+
     public DateTime ValidUntil { get; init; }
+
+    // Вычисляемое свойство: сеттера нет, значение считается из ValidUntil.
     public bool IsActive => ValidUntil > DateTime.Now;
 
-    private decimal _percent;
+    // Полная запись: процент от 0 до 100.
     public decimal Percent
     {
-        get => _percent;
+        get => percent;
         set
         {
             EnsurePercent(value);
-            _percent = value;
+            percent = value;
         }
     }
 
-    private int _minSum;
+    // Полная запись: минимальная сумма заказа, не может быть отрицательной.
     public int MinSum
     {
-        get => _minSum;
+        get => minSum;
         set
         {
             if (value < 0)
-                throw new ArgumentOutOfRangeException(nameof(MinSum),"Минимальная сумма не может быть отрицательной.");
-            _minSum = value;
+                throw new ArgumentOutOfRangeException(nameof(value), "Минимальная сумма не может быть отрицательной.");
+
+            minSum = value;
         }
     }
 
+    /// <summary>Короткая версия всегда вызывает полную — дублирования кода нет.</summary>
+    public int Calculate(int total) => Calculate(total, Percent);
 
-
-    public int Calculate(int total)
-    {
-        return Calculate(total, Percent);
-    }
-
+    /// <summary>Итог после скидки с учётом минимальной суммы заказа.</summary>
     public int Calculate(int total, decimal percent)
     {
         if (total < 0)
@@ -45,15 +54,12 @@ public class Discount
 
         EnsurePercent(percent);
 
+        // Минимальная сумма не набрана — скидка не применяется.
         if (total < MinSum)
-        {
-            return total; 
-        }
+            return total;
 
         return ApplyDiscount(total, percent);
     }
-
-
 
     private static void EnsurePercent(decimal value)
     {
@@ -66,8 +72,8 @@ public class Discount
         decimal discountAmount = total * (percent / 100m);
         decimal finalPrice = total - discountAmount;
 
-        return (int)finalPrice;
-        // округление происходит путем отбрасывания дробной части, поскольку в задании не указано иное
-        // не очень понимаю, почему вообще для расчетов денег мы используем int вместе decimal
+        // Округление до целых по правилам арифметики (0.5 — вверх).
+        // В задании тип цены — int, поэтому результат приводится к целому явно.
+        return (int)Math.Round(finalPrice, MidpointRounding.AwayFromZero);
     }
 }

@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
-using Marketplace.DataAccess;
+using System.Linq;
 using Marketplace.Domain;
-using Marketplace.Presentation;
+using Marketplace.Services;
 
 namespace Marketplace;
 
 /// <summary>
-/// Точка входа компоновки: демонстрация инкапсуляции, DIP и SRP.
+/// Точка входа занятия 4: демонстрация видов свойств, перегрузок и защиты данных.
 /// </summary>
 public static class Program
 {
@@ -15,119 +15,262 @@ public static class Program
     {
         Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-        Section("1. Создание товаров, в том числе с недопустимыми данными");
-
-        var catalog = new Catalog();
-        catalog.Add(new Product(1, "Кружка", 450));
-        catalog.Add(new Product(2, "Термос", 1200));
-        catalog.Add(new Product(3, "Набор стикеров", 90));
-
-        Console.WriteLine($"В каталог добавлено товаров: {catalog.GetCount()}");
-
-        // Целостность данных: недопустимые значения не попадают в объект.
-        TryAdd(catalog, 4, "   ", -5, "пустое название и отрицательная цена");
-        TryAdd(catalog, 4, "Товар", -5, "отрицательная цена");
-        TryAdd(catalog, 0, "Товар", 100, "ID равен нулю");
-        TryAdd(catalog, 5, "кружка", 300, "дубль названия в другом регистре");
-        TryAdd(catalog, 1, "Другой товар", 300, "дубль ID");
-
-        Console.WriteLine($"Товаров в каталоге после отклонённых попыток: {catalog.GetCount()}");
-
-        Section("2. Поиск, удаление и попытка испортить коллекцию снаружи");
-
-        var found = catalog.Find("  термос  ");
-        Console.WriteLine(found == null ? "Термос не найден." : $"Найден: {found.GetInfo()}");
-
-        Console.WriteLine($"Удаление \"Термос\": {catalog.Remove("ТЕРМОС")}");
-        Console.WriteLine($"Повторное удаление \"Термос\": {catalog.Remove("Термос")}");
-        Console.WriteLine($"Товаров в каталоге: {catalog.GetCount()}");
-
-        // GetProducts возвращает копию: изменить внутренний список снаружи нельзя.
-        IReadOnlyList<Product> first = catalog.GetProducts();
-        IReadOnlyList<Product> second = catalog.GetProducts();
-
-        Console.WriteLine($"Два вызова GetProducts дают разные объекты списка: {!ReferenceEquals(first, second)}");
-        Console.WriteLine($"Элементов в копии: {first.Count}, в каталоге: {catalog.GetCount()}");
-        Console.WriteLine("catalog.GetProducts().Clear() не компилируется: у IReadOnlyList<T> нет метода Clear.");
-
-        Section("3. Сохранение и загрузка через интерфейс (DIP)");
-
-        // DIP: работаем через интерфейс, а не через конкретный класс.
-        IProductRepository repository = new FileProductRepository("products.csv");
-
-        repository.Save(catalog.GetProducts());
-        Console.WriteLine("Каталог сохранён в products.csv через IProductRepository.");
-
-        List<Product> loaded = repository.Load();
-        Console.WriteLine($"Загружено товаров: {loaded.Count}");
-
-        Section("4. Вывод и отчёты (SRP)");
-
-        var printer = new CatalogPrinter();
-        printer.PrintAll(loaded);
-        Console.WriteLine();
-        printer.PrintTop(loaded, 2);
-
-        Console.WriteLine();
-        Console.WriteLine($"Суммарная стоимость каталога: {new CatalogReport().GetSummary(loaded):F2} УЕ");
-        Console.WriteLine($"Средняя цена товара: {new CatalogReport().GetAveragePrice(loaded):F2} УЕ");
-
-        Section("5. Проверка целостности файлового хранилища");
-
-        CheckBrokenFile();
-
-        Section("6. Что не компилируется (проверено удалением строк из кода)");
-
-        Console.WriteLine("product.price = -100;      → CS0122: 'Product.price' недоступен из-за уровня защиты");
-        Console.WriteLine("catalog.products.Clear();  → CS0122: 'Catalog.products' недоступен из-за уровня защиты");
-        Console.WriteLine("catalog.GetProducts().Clear(); → CS1061: 'IReadOnlyList<Product>' не содержит 'Clear'");
-        Console.WriteLine("PriceFormatter.Format(1) из CatalogReport.cs → CS0103: имя 'PriceFormatter' не существует в текущем контексте");
-
-        Console.WriteLine();
-        Console.WriteLine("Компоновка завершена.");
+        DemoProducts();
+        DemoCustomers();
+        DemoCartAndReports();
+        DemoDiscount();
+        DemoInvalidValues();
+        DemoImmutability();
     }
 
-    private static void TryAdd(Catalog catalog, int id, string title, int price, string caseName)
+    // ---------- 1. Товары: четыре вида свойств ----------
+
+    private static void DemoProducts()
+    {
+        Section("1. Товары: обязательные свойства заданы в инициализаторах");
+
+        // Создание через конструктор без параметров: required Title задаётся
+        // в объектном инициализаторе — иначе код не скомпилируется.
+        var cup = new Product { Title = "Кружка", Price = 450 };
+        cup.Article = "A-001";
+
+        var thermos = new Product { Title = "Термос", Price = 1200 };
+        var stickers = new Product { Title = "Набор стикеров", Price = 20 };
+
+        var products = new List<Product> { cup, thermos, stickers };
+
+        foreach (var product in products)
+            Console.WriteLine($"  {product.GetInfo()}");
+
+        Section("2. Вычисляемое свойство IsBudget и оба варианта GetInfo");
+
+        foreach (var product in products)
+        {
+            Console.WriteLine($"{product.Title}: IsBudget = {product.IsBudget} (цена {product.Price})");
+            Console.WriteLine($"    GetInfo()      → {product.GetInfo()}");
+            Console.WriteLine($"    GetInfo(false) → {product.GetInfo(false)}");
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("IsBudget — вычисляемое: сеттера нет, значение пересчитывается из Price.");
+        Console.WriteLine("Изменение Price меняет IsBudget без дополнительного кода:");
+        Console.WriteLine($"  до:    Price={stickers.Price}, IsBudget={stickers.IsBudget}");
+        stickers.Price = 120;
+        Console.WriteLine($"  после: Price={stickers.Price}, IsBudget={stickers.IsBudget}");
+
+        Section("3. Свойство Status меняется только через ChangeStatus");
+
+        Console.WriteLine($"Статус кружки: {cup.Status}");
+        cup.ChangeStatus("Под заказ");
+        Console.WriteLine($"После ChangeStatus(\"Под заказ\"): {cup.Status}");
+        Console.WriteLine("Присваивание cup.Status = \"Продан\" не компилируется — сеттер private set.");
+    }
+
+    // ---------- 2. Покупатели ----------
+
+    private static void DemoCustomers()
+    {
+        Section("4. Покупатели: required FullName, инициализатор Phone, проверки в сеттерах");
+
+        var first = new CustomerProfile
+        {
+            FullName = "Иванов Иван",
+            Email = "ivanov@example.com",
+            Phone = "  +7 900 123-45-67  ",
+            Rating = 5
+        };
+
+        var second = new CustomerProfile
+        {
+            FullName = "Петрова Мария",
+            Email = "petrova@example.com",
+            Rating = 2
+        };
+
+        foreach (var customer in new[] { first, second })
+        {
+            Console.WriteLine($"{customer.GetInfo()}");
+            Console.WriteLine($"    GetInfo()      → {customer.GetInfo()}");
+            Console.WriteLine($"    GetInfo(false) → {customer.GetInfo(false)}");
+            Console.WriteLine($"    Контакты с телефоном: {customer.GetContactInfo(true)}");
+            Console.WriteLine($"    Контакты без телефона: {customer.GetContactInfo(false)}");
+            Console.WriteLine($"    IsTrusted = {customer.IsTrusted}");
+            Console.WriteLine();
+        }
+    }
+
+    // ---------- 3. Корзина и отчёты ----------
+
+    private static void DemoCartAndReports()
+    {
+        Section("5. Корзина и отчёты через CheckoutService");
+
+        var items = new List<CartItem>
+        {
+            new(1, 2, 450),      // 900
+            new(2, 1, 1200),     // 1200
+            new(3, 5, 120),      // 600
+            default              // значение по умолчанию: не является позицией покупки
+        };
+
+        var checkout = new CheckoutService();
+
+        Console.WriteLine($"Итоговая сумма всех позиций: {checkout.GetTotal(items)} УЕ");
+        Console.WriteLine("default(CartItem) создан без конструктора и в сумму не даёт вклада: его Total = 0.");
+        Console.WriteLine();
+
+        Console.WriteLine("Корзина считается пустой? Нет — 3 корректные позиции из 4.");
+        Console.WriteLine();
+
+        Console.WriteLine("--- Краткий отчёт GetReport(items) ---");
+        Console.WriteLine(checkout.GetReport(items));
+        Console.WriteLine();
+
+        Console.WriteLine("--- Полный отчёт GetReport(items, true) ---");
+        Console.WriteLine(checkout.GetReport(items, true));
+        Console.WriteLine();
+
+        var cheaper = checkout.FindCheaperThan(items, 500);
+        Console.WriteLine($"Позиции дешевле 500 УЕ за единицу: {cheaper.Count} шт.");
+        foreach (var item in cheaper)
+            Console.WriteLine($"  Товар #{item.ProductId}, цена {item.PricePerUnit} УЕ");
+        Console.WriteLine();
+
+        Console.WriteLine("--- Пустая корзина ---");
+        Console.WriteLine(checkout.GetReport(new List<CartItem>()));
+    }
+
+    // ---------- 4. Скидки ----------
+
+    private static void DemoDiscount()
+    {
+        Section("6. Скидка: обе перегрузки Calculate");
+
+        var discount = new Discount
+        {
+            Name = "Осенняя распродажа",
+            Percent = 15m,
+            MinSum = 1000,
+            ValidUntil = DateTime.Now.AddDays(7)
+        };
+
+        Console.WriteLine($"Скидка: {discount.Name}");
+        Console.WriteLine($"  Percent = {discount.Percent}%, MinSum = {discount.MinSum} УЕ");
+        Console.WriteLine($"  ValidUntil = {discount.ValidUntil:dd.MM.yyyy HH:mm}, IsActive = {discount.IsActive}");
+        Console.WriteLine();
+
+        // Короткая перегрузка использует собственный Percent.
+        int total = 5000;
+        Console.WriteLine($"Calculate({total})              → {discount.Calculate(total)} УЕ (Percent = {discount.Percent}%)");
+
+        // Полная перегрузка принимает процент параметром.
+        Console.WriteLine($"Calculate({total}, 30)          → {discount.Calculate(total, 30m)} УЕ");
+        Console.WriteLine($"Calculate({total}, 0)           → {discount.Calculate(total, 0m)} УЕ");
+        Console.WriteLine();
+
+        // Минимальная сумма не набрана — скидка не применяется.
+        int smallTotal = 800;
+        Console.WriteLine($"Calculate({smallTotal})            → {discount.Calculate(smallTotal)} УЕ — скидка не применена, сумма меньше MinSum ({discount.MinSum}).");
+        Console.WriteLine();
+
+        Console.WriteLine("Проверка арифметики полной перегрузки:");
+        Console.WriteLine($"  {total} × 15% = {total * 15m / 100m:F2} — скидка, к оплате {total - total * 15m / 100m:F0} УЕ");
+    }
+
+    // ---------- 5. Недопустимые значения ----------
+
+    private static void DemoInvalidValues()
+    {
+        Section("7. Недопустимые значения отклоняются сеттерами");
+
+        var product = new Product { Title = "Проверочный товар", Price = 100 };
+        var customer = new CustomerProfile { FullName = "Сидоров Сидор", Email = "sidorov@example.com", Rating = 3 };
+
+        Try("запись отрицательной цены", () => product.Price = -10);
+        Console.WriteLine($"    Цена осталась: {product.Price} УЕ");
+        Console.WriteLine();
+
+        Try("запись пустого артикула", () => product.Article = "   ");
+        Console.WriteLine("    Артикул остался прежним.");
+        Console.WriteLine();
+
+        Try("запись недопустимого рейтинга", () => customer.Rating = 7);
+        Console.WriteLine($"    Рейтинг остался: {customer.Rating}");
+        Console.WriteLine();
+
+        Try("запись недопустимого статуса", () => product.ChangeStatus("Продан"));
+        Console.WriteLine($"    Статус остался: {product.Status}");
+        Console.WriteLine();
+
+        Try("запись email без символа @", () => customer.Email = "неверный-email");
+        Console.WriteLine($"    Email остался: {customer.Email}");
+        Console.WriteLine();
+
+        Try("скидка больше 100 процентов", () => new Discount { Name = "Ошибка", Percent = 150m });
+        Console.WriteLine();
+
+        Try("отрицательный процент в полной перегрузке", () => new Discount { Name = "Норм", Percent = 10m }.Calculate(1000, -5m));
+    }
+
+    private static void Try(string situation, Action action)
     {
         try
         {
-            catalog.Add(new Product(id, title, price));
-            Console.WriteLine($"[НЕ ОЖИДАЛОСЬ] {caseName}: товар добавлен.");
+            action();
+            Console.WriteLine($"[НЕ ОЖИДАЛОСЬ] {situation}: значение принято.");
         }
-        catch (ArgumentException ex)
+        catch (Exception ex)
         {
-            Console.WriteLine($"[Отклонено] {caseName}: {ex.Message}");
+            Console.WriteLine($"[Отклонено] {situation}: {ex.GetType().Name} — {ex.Message}");
         }
     }
 
-    private static void CheckBrokenFile()
+    // ---------- 6. Неизменяемость ----------
+
+    private static void DemoImmutability()
     {
-        const string brokenPath = "products_broken.csv";
+        Section("8. Неизменяемые свойства после создания объекта");
 
-        // Одна корректная строка, одна битая, одна с недопустимой ценой, одна с повтором ID.
-        File.WriteAllLines(brokenPath, new[]
-        {
-            "1;Кружка;450",
-            "мусор",
-            "2;Термос;-100",
-            "1;Дубль;99"
-        });
+        var product = new Product { Title = "Кружка", Price = 450 };
+        Console.WriteLine($"Товар создан: {product.GetInfo()}");
+        Console.WriteLine();
 
-        IProductRepository repository = new FileProductRepository(brokenPath);
-        List<Product> loaded = repository.Load();
+        // Иллюстрация попытки вызвать сеттер для неизменяемого свойства.
+        // product.Title = "Другая кружка";
+        // ↑ CS0200: Property or indexer 'Product.Title' cannot be assigned to --
+        //           it is read only (свойство объявлено с init)
 
-        Console.WriteLine($"Из файла с 4 строками (1 корректная, 3 битых) загружено: {loaded.Count}");
-        foreach (var product in loaded)
-            Console.WriteLine($"  {product.GetInfo()}");
+        // Иллюстрация попытки вызвать сеттер для неизменяемого свойства.
+        // product.Status = "Продан";
+        // ↑ CS0200: Property or indexer 'Product.Status' cannot be assigned to --
+        //           it is read only (у свойства закрытый сеттер)
 
-        Console.WriteLine($"Файл существует и прочитан без исключения: {File.Exists(brokenPath)}");
+        // Иллюстрация попытки создать товар без обязательного свойства.
+        // var broken = new Product { Price = 100 };
+        // ↑ CS9035: Required member 'Product.Title' must be set in the object initializer
+        //           or attribute constructor
+
+        // Иллюстрация попытки изменить свойство структуры после создания.
+        // var item = new CartItem(1, 2, 450);
+        // item.Quantity = 5;
+        // ↑ CS0200: Property or indexer 'CartItem.Quantity' cannot be assigned to --
+        //           it is read only (readonly struct, свойства только для чтения)
+
+        Console.WriteLine("Попытки изменить Title, Status, Quantity и создать объект без Title");
+        Console.WriteLine("закомментированы в коде — все четыре строки не компилируются.");
+        Console.WriteLine("Тексты ошибок компилятора приведены в отчёте.");
+
+        // Значение структуры можно заменить целиком — это создание новой копии.
+        var item2 = new CartItem(1, 2, 450);
+        Console.WriteLine($"Копия структуры CartItem: ProductId={item2.ProductId}, Quantity={item2.Quantity}, Total={item2.Total} УЕ");
+        Console.WriteLine("Полю структуры присвоить нельзя, но переменную можно заменить новым значением.");
     }
 
     private static void Section(string title)
     {
         Console.WriteLine();
-        Console.WriteLine(new string('=', 72));
+        Console.WriteLine(new string('=', 74));
         Console.WriteLine(title);
-        Console.WriteLine(new string('=', 72));
+        Console.WriteLine(new string('=', 74));
     }
 }

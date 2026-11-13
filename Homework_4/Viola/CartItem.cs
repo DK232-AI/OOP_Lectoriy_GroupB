@@ -2,13 +2,17 @@ using System;
 
 namespace Marketplace.Domain;
 
+/// <summary>
+/// Позиция корзины. На занятии 2 была классом; теперь readonly struct:
+/// данные позиции после создания не меняются, стоимость считается свойством.
+/// </summary>
 public readonly struct CartItem
 {
     public int ProductId { get; }
     public int Quantity { get; }
-    public int PricePerUnit { get; }    //опять же, почему для денег int а не decimal?
+    public int PricePerUnit { get; }
 
-    // public int Total => PricePerUnit * Quantity;
+    /// <summary>Вычисляемое свойство: стоимость позиции.</summary>
     public int Total => checked(PricePerUnit * Quantity);
 
     public CartItem(int productId, int quantity, int pricePerUnit)
