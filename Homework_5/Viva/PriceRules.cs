@@ -2,6 +2,10 @@ using System;
 
 namespace Marketplace.Domain;
 
+/// <summary>
+/// Правила ценообразования: НДС и скидки.
+/// Статический класс с const, static readonly и методами без состояния.
+/// </summary>
 public static class PriceRules
 {
     public const decimal VatRate = 0.2m;
@@ -30,6 +34,6 @@ public static class PriceRules
     private static void EnsurePercent(int percent)
     {
         if (percent < 0 || percent > MaxDiscountPercent)
-            throw new ArgumentOutOfRangeException(nameof(percent), "Скидка должна быть от 0 до 70 процентов.");
+            throw new ArgumentOutOfRangeException(nameof(percent), $"Скидка должна быть от 0 до {MaxDiscountPercent} процентов.");
     }
 }

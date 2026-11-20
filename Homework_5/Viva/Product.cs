@@ -1,7 +1,12 @@
 using System;
+using System.Globalization;
 
 namespace Marketplace.Domain;
 
+/// <summary>
+/// Товар с поддержкой статических данных: const, static readonly, static property.
+/// Демонстрирует все разновидности статических членов.
+/// </summary>
 public class Product
 {
     public const int MaxPrice = 1_000_000;
@@ -9,6 +14,12 @@ public class Product
     private static int nextId;
     private static readonly string[] allowedStatuses = { "В наличии", "Нет в наличии", "Под заказ" };
     public static readonly DateTime CatalogStartedAt;
+
+    // Явный статический конструктор выполняется CLR однократно до первого обращения к типу.
+    static Product()
+    {
+        CatalogStartedAt = DateTime.UtcNow;
+    }
 
     private readonly DateTime createdAt;
     private string article = string.Empty;
@@ -25,7 +36,6 @@ public class Product
         {
             if (string.IsNullOrWhiteSpace(value))
                 throw new ArgumentException("Артикул обязателен.", nameof(value));
-
             article = value.Trim();
         }
     }
@@ -36,8 +46,7 @@ public class Product
         set
         {
             if (value < 0 || value > MaxPrice)
-                throw new ArgumentOutOfRangeException(nameof(value), "Цена должна быть от 0 до 1 000 000.");
-
+                throw new ArgumentOutOfRangeException(nameof(value), $"Цена должна быть от 0 до {MaxPrice}.");
             price = value;
         }
     }
@@ -46,15 +55,11 @@ public class Product
     public bool IsBudget => Price < 25;
     public string Status { get; private set; } = "В наличии";
 
-    static Product()
-    {
-        CatalogStartedAt = DateTime.UtcNow;
-    }
-
     public Product()
     {
         Id = checked(++nextId);
         createdAt = DateTime.Now;
+        Article = Id.ToString(CultureInfo.InvariantCulture);
     }
 
     public void ChangeStatus(string newStatus)
