@@ -22,19 +22,13 @@ public class CustomerProfile
         }
     }
 
-    public string GetDisplayName()
-    {
-        return $"{FullName} {MiddleName ?? string.Empty}".Trim();
-    }
+    public string GetDisplayName() => $"{FullName} {MiddleName ?? string.Empty}".Trim();
 
-    public string GetEmail()
-    {
-        return Email ?? UnknownEmail;
-    }
+    public string GetEmail() => Email ?? UnknownEmail;
 
     public void EnsureEmail()
     {
-        Email = LooksLikeEmail(Email) ? Email : UnknownEmail;
+        Email ??= UnknownEmail;
     }
 
     public string TryNormalizeEmail() => NormalizeEmail(Email);
